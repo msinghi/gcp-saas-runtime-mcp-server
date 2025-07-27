@@ -107,6 +107,172 @@ npm start
 node dist/index.js
 ```
 
+## Usage Methods
+
+The MCP server provides several ways to interact with the GCP SaaS Runtime APIs:
+
+### Method 1: With Claude Desktop
+
+Once configured in Claude Desktop, you can interact naturally:
+
+**Example conversations:**
+```
+"Can you list all my SaaS offerings in the us-central1 region for project my-project-id?"
+
+"Create a new SaaS offering called 'My Web App' in us-central1 region"
+
+"Show me all the units for tenant customer-a"
+```
+
+Claude will automatically call the appropriate MCP tools with the right JSON parameters.
+
+### Method 2: Manual MCP Testing (Advanced)
+
+For testing the server directly with MCP protocol messages:
+
+#### 2a. Interactive Testing
+
+1. **Start the server in one terminal:**
+```bash
+npm run dev
+```
+
+2. **In another terminal, send MCP messages:**
+
+**List available tools:**
+```bash
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}' | node dist/index.js
+```
+
+**List SaaS offerings:**
+```bash
+echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "list_saas_offerings", "arguments": {"parent": "projects/YOUR-PROJECT-ID/locations/us-central1"}}}' | node dist/index.js
+```
+
+**Create a SaaS offering:**
+```bash
+echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "create_saas_offering", "arguments": {"parent": "projects/YOUR-PROJECT-ID/locations/us-central1", "saasOffering": {"displayName": "Test App", "regions": ["us-central1"]}}}}' | node dist/index.js
+```
+
+**List unit kinds:**
+```bash
+echo '{"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "list_unit_kinds", "arguments": {"parent": "projects/YOUR-PROJECT-ID/locations/us-central1"}}}' | node dist/index.js
+```
+
+**List tenants:**
+```bash
+echo '{"jsonrpc": "2.0", "id": 5, "method": "tools/call", "params": {"name": "list_tenants", "arguments": {"parent": "projects/YOUR-PROJECT-ID/locations/us-central1"}}}' | node dist/index.js
+```
+
+**Create a tenant:**
+```bash
+echo '{"jsonrpc": "2.0", "id": 6, "method": "tools/call", "params": {"name": "create_tenant", "arguments": {"parent": "projects/YOUR-PROJECT-ID/locations/us-central1", "tenant": {"displayName": "Customer A", "description": "Test customer"}}}}' | node dist/index.js
+```
+
+**Get a specific SaaS offering:**
+```bash
+echo '{"jsonrpc": "2.0", "id": 7, "method": "tools/call", "params": {"name": "get_saas_offering", "arguments": {"name": "projects/YOUR-PROJECT-ID/locations/us-central1/saas/test-app"}}}' | node dist/index.js
+```
+
+#### 2b. Using files for complex requests
+
+For more complex requests, save JSON to files:
+
+**Create `create_unit_kind.json`:**
+```json
+{
+  "jsonrpc": "2.0", 
+  "id": 8, 
+  "method": "tools/call", 
+  "params": {
+    "name": "create_unit_kind",
+    "arguments": {
+      "parent": "projects/YOUR-PROJECT-ID/locations/us-central1",
+      "unitKind": {
+        "displayName": "VM Unit Kind",
+        "description": "Virtual machine deployment unit",
+        "saasOffering": "projects/YOUR-PROJECT-ID/locations/us-central1/saas/test-app",
+        "blueprint": {
+          "artifactRegistry": {
+            "repository": "projects/YOUR-PROJECT-ID/locations/us-central1/repositories/my-repo",
+            "artifact": "vm-blueprint",
+            "tag": "v1.0.0"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Then execute:**
+```bash
+cat create_unit_kind.json | node dist/index.js
+```
+
+**Create `create_unit.json`:**
+```json
+{
+  "jsonrpc": "2.0", 
+  "id": 9, 
+  "method": "tools/call", 
+  "params": {
+    "name": "create_unit",
+    "arguments": {
+      "parent": "projects/YOUR-PROJECT-ID/locations/us-central1",
+      "unit": {
+        "displayName": "Customer A VM",
+        "description": "VM deployment for Customer A",
+        "unitKind": "projects/YOUR-PROJECT-ID/locations/us-central1/unitKinds/vm-unit-kind",
+        "tenant": "projects/YOUR-PROJECT-ID/locations/us-central1/tenants/customer-a",
+        "inputVariables": {
+          "actuation_sa": "actuation-sa@YOUR-PROJECT-ID.iam.gserviceaccount.com",
+          "machine_type": "e2-medium",
+          "zone": "us-central1-a"
+        }
+      }
+    }
+  }
+}
+```
+
+**Execute:**
+```bash
+cat create_unit.json | node dist/index.js
+```
+
+#### 2c. Quick Test Script
+
+Create a test script `test_commands.sh`:
+
+```bash
+#!/bin/bash
+PROJECT_ID="YOUR-PROJECT-ID"
+LOCATION="us-central1"
+
+echo "=== Testing MCP Server ==="
+echo "Project: $PROJECT_ID"
+echo "Location: $LOCATION"
+echo
+
+echo "1. Listing tools..."
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}' | node dist/index.js
+echo
+
+echo "2. Listing SaaS offerings..."
+echo "{\"jsonrpc\": \"2.0\", \"id\": 2, \"method\": \"tools/call\", \"params\": {\"name\": \"list_saas_offerings\", \"arguments\": {\"parent\": \"projects/$PROJECT_ID/locations/$LOCATION\"}}}" | node dist/index.js
+echo
+
+echo "3. Listing tenants..."
+echo "{\"jsonrpc\": \"2.0\", \"id\": 3, \"method\": \"tools/call\", \"params\": {\"name\": \"list_tenants\", \"arguments\": {\"parent\": \"projects/$PROJECT_ID/locations/$LOCATION\"}}}" | node dist/index.js
+```
+
+**Make it executable and run:**
+```bash
+chmod +x test_commands.sh
+./test_commands.sh
+```
+
 ## Usage Examples
 
 The MCP server provides tools for all SaaS Runtime API operations. Here are some example usage patterns:
