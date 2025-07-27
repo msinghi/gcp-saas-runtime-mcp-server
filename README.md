@@ -12,7 +12,7 @@ This MCP (Model Context Protocol) server provides access to Google Cloud Platfor
 
 ## Installation
 
-1. **Clone repo
+1. **Clone repo:**
 ```bash
 git clone git@github.com:msinghi/gcp-saas-runtime-mcp-server.git
 cd gcp-saas-runtime-mcp-server
