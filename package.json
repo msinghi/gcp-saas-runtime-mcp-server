@@ -1,0 +1,38 @@
+{
+  "name": "gcp-saas-runtime-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for GCP SaaS Runtime APIs",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "gcp-saas-runtime-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "gcp",
+    "saas-runtime",
+    "google-cloud"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0",
+    "google-auth-library": "^9.0.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/node-fetch": "^2.6.11",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
